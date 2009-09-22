@@ -1,7 +1,7 @@
 #
 # [Author] HugoLnx/HugoLinux
 # [Credits] <b>To Help-me in this version:</b> RubyonBr Forum ( http://forum.rubyonbr.org/forums/ )
-# [Version] 1.1.0.0
+# [Version] 1.2.0.0
 #
 
 # Array class
@@ -64,17 +64,17 @@ class CPU < Player
   # [Return] <b>+Object+:</b> The button choiced by Artificial Inteligence
   def turn
     @choiced = nil
-    @o_markup = mark_markup == $X_markup ? $O_markup : $X_markup
-    $num_moves += 1
-    if $num_moves > 2 and $nivel != 0
-      @choiced = take_care_of_checkmate("try_do") if $nivel >= 2
+    @o_markup = mark_markup == $glob.x_markup ? $glob.o_markup : $glob.x_markup
+    $glob.num_moves += 1
+    if $glob.num_moves > 2 and $glob.game_mode != 0
+      @choiced = take_care_of_checkmate("try_do") if $glob.game_mode >= 2
       if @choiced.nil?
-        @choiced = take_care_of_checkmate("previne") if $nivel >= 1
+        @choiced = take_care_of_checkmate("previne") if $glob.game_mode >= 1
       end  
       return @choiced if @choiced != nil
     end
-    valid = $btns.find_all{|btn| btn.label_widget.markup == $Null_markup}
-    valid = use_invincible_strategies(valid) if $nivel == 3
+    valid = $glob.btns.find_all{|btn| btn.label_widget.markup == $glob.null_markup}
+    valid = use_invincible_strategies(valid) if $glob.game_mode == 3
     @choiced = valid[rand(valid.size - 1)]
     return @choiced
   ensure
@@ -98,14 +98,14 @@ class CPU < Player
   # Aplica estratégias que tornam a CPU invencível.
   # [Return] <b>+Array+:</b> All the buttons that can be played
   def use_invincible_strategies(valid)
-    if $num_moves == 0
+    if $glob.num_moves == 0
       return valid.find_all{|btn| btn.type[0] == "tip" or btn.type[0] == "center"}
     end
     
-    if $num_moves == 2
+    if $glob.num_moves == 2
       if @my_lst_btn.type[0] == "center"
         if $last_btn.type[0] == "tip"
-          return [$btns.by_t(["tip",oposit($last_btn.type[1]),oposit($last_btn.type[2])])]
+          return [$glob.btns.by_t(["tip",oposit($last_btn.type[1]),oposit($last_btn.type[2])])]
         elsif $last_btn.type[0] == "side"
           return valid.find_all{|btn| btn.type[0] == "tip"}
           if $last_btn.type[1] != nil
@@ -120,39 +120,39 @@ class CPU < Player
           @strategy = 1
           return valid.find_all{|btn| btn.type[0] == "tip"}
         elsif $last_btn.type[0] == "center" or $last_btn.type[0] == "tip"
-          return [$btns.by_t(["tip",oposit(@my_lst_btn.type[1]),oposit(@my_lst_btn.type[2])])]
+          return [$glob.btns.by_t(["tip",oposit(@my_lst_btn.type[1]),oposit(@my_lst_btn.type[2])])]
         else
           @strategy = 2
           if $last_btn.type[1] != nil
-            return [$btns.by_t(["tip",oposit($last_btn.type[1]),@my_lst_btn.type[2]])]
+            return [$glob.btns.by_t(["tip",oposit($last_btn.type[1]),@my_lst_btn.type[2]])]
           else
-            return [$btns.by_t(["tip",@my_lst_btn.type[1],oposit($last_btn.type[2])])]
+            return [$glob.btns.by_t(["tip",@my_lst_btn.type[1],oposit($last_btn.type[2])])]
           end
         end
       end  
     end
     
-    if $num_moves == 4
+    if $glob.num_moves == 4
       if @strategy == 1
         return valid.find_all{|btn| btn.type[0] == "tip"}[0]
       elsif @strategy == 2
-        return [$btns.by_t(["center"])]
+        return [$glob.btns.by_t(["center"])]
       end  
     end
-    if $num_moves == 1
+    if $glob.num_moves == 1
       if $last_btn.type[0] == "center"
         return valid.find_all{|btn| btn.type[0] == "tip"}
       else
         @strategy = [1,$last_btn] if $last_btn.type[0] == "side"
-        return [$btns.by_t(["center"])]
+        return [$glob.btns.by_t(["center"])]
       end
     end
-    if $num_moves == 3
+    if $glob.num_moves == 3
       if $last_btn.type[1] == oposit(@my_lst_btn.type[1]) and $last_btn.type[2] == 
       oposit(@my_lst_btn.type[2])
         return valid.find_all{|btn| btn.type[0] == "tip"}
       end
-      if $btns.count{|btn| btn.type[0] == "tip" and btn.label_widget.markup == 
+      if $glob.btns.count{|btn| btn.type[0] == "tip" and btn.label_widget.markup == 
         @o_markup} == 2
         return valid.find_all{|btn| btn.type[0] == "side"}
       end
@@ -160,9 +160,9 @@ class CPU < Player
         first_btn = @strategy[1]
         if (first_btn.type[1].nil?) ^ ($last_btn.type[1].nil?)
           if first_btn.type[1].nil
-            return [$btns.by_t(["tip",$last_btn.type[1],first_btn.type[2]])]
+            return [$glob.btns.by_t(["tip",$last_btn.type[1],first_btn.type[2]])]
           else
-            return [$btns.by_t(["tip",first_btn.type[1],$last_btn.type[2]])]
+            return [$glob.btns.by_t(["tip",first_btn.type[1],$last_btn.type[2]])]
           end
         else
           return [valid.find_all{|btn| btn.type[0] == "tip"}]
@@ -187,36 +187,36 @@ class CPU < Player
     y = lst_btn.y
     null_btn = nil
     if x == 0
-      null_btn = check_2_btns($btns.by_c(x + 1,y),$btns.by_c(x + 2,y),compare_markup)
+      null_btn = check_2_btns($glob.btns.by_c(x + 1,y),$glob.btns.by_c(x + 2,y),compare_markup)
     elsif x == 1
-      null_btn = check_2_btns($btns.by_c(x + 1,y),$btns.by_c(x - 1,y),compare_markup)
+      null_btn = check_2_btns($glob.btns.by_c(x + 1,y),$glob.btns.by_c(x - 1,y),compare_markup)
     else
-      null_btn = check_2_btns($btns.by_c(x - 1,y),$btns.by_c(x - 2,y),compare_markup)
+      null_btn = check_2_btns($glob.btns.by_c(x - 1,y),$glob.btns.by_c(x - 2,y),compare_markup)
     end
     if null_btn.nil?
       if y == 0 
-        null_btn = check_2_btns($btns.by_c(x,y + 1),$btns.by_c(x,y + 2),compare_markup)
+        null_btn = check_2_btns($glob.btns.by_c(x,y + 1),$glob.btns.by_c(x,y + 2),compare_markup)
       elsif y == 1
-        null_btn = check_2_btns($btns.by_c(x,y + 1),$btns.by_c(x,y - 1),compare_markup)
+        null_btn = check_2_btns($glob.btns.by_c(x,y + 1),$glob.btns.by_c(x,y - 1),compare_markup)
       else
-        null_btn = check_2_btns($btns.by_c(x,y - 1),$btns.by_c(x,y - 2),compare_markup)
+        null_btn = check_2_btns($glob.btns.by_c(x,y - 1),$glob.btns.by_c(x,y - 2),compare_markup)
       end  
     else
       return null_btn
     end  
     if null_btn.nil?
       if x == 0 and y == 0
-        null_btn = check_2_btns($btns.by_c(1,1),$btns.by_c(2,2),compare_markup)
+        null_btn = check_2_btns($glob.btns.by_c(1,1),$glob.btns.by_c(2,2),compare_markup)
       elsif x == 2 and y == 2
-        null_btn = check_2_btns($btns.by_c(0,0),$btns.by_c(1,1),compare_markup)
+        null_btn = check_2_btns($glob.btns.by_c(0,0),$glob.btns.by_c(1,1),compare_markup)
       elsif x == 2 and y == 0
-        null_btn = check_2_btns($btns.by_c(1,1),$btns.by_c(0,2),compare_markup)
+        null_btn = check_2_btns($glob.btns.by_c(1,1),$glob.btns.by_c(0,2),compare_markup)
       elsif x == 0 and y == 2
-        null_btn = check_2_btns($btns.by_c(1,1),$btns.by_c(2,0),compare_markup)
+        null_btn = check_2_btns($glob.btns.by_c(1,1),$glob.btns.by_c(2,0),compare_markup)
       elsif x == 1 and y == 1
-        null_btn = check_2_btns($btns.by_c(0,0),$btns.by_c(2,2),compare_markup)
+        null_btn = check_2_btns($glob.btns.by_c(0,0),$glob.btns.by_c(2,2),compare_markup)
         return null_btn if null_btn != nil
-        null_btn = check_2_btns($btns.by_c(2,0),$btns.by_c(0,2),compare_markup)
+        null_btn = check_2_btns($glob.btns.by_c(2,0),$glob.btns.by_c(0,2),compare_markup)
       end  
     end  
     return null_btn
@@ -231,9 +231,9 @@ class CPU < Player
     null_btn = nil
     enemy_btn = nil
     if b1_mark != b2_mark
-      if b1_mark == $Null_markup
+      if b1_mark == $glob.null_markup
         null_btn = btn1
-      elsif b2_mark == $Null_markup
+      elsif b2_mark == $glob.null_markup
         null_btn = btn2
       end
       if b1_mark == compare_markup
@@ -271,31 +271,31 @@ class BoardWindow < Gtk::Window
     # [Return] <html><font color=red>Nothing</font></html>
   def init_vars
     self.resize(200,250)
-    @new_btn = Gtk::Button.new("")
-    @default_size_btn = Gtk::Button.new("")
-    @quit_btn = Gtk::Button.new("")
+    @new_btn = Gtk::Button.new('')
+    @default_size_btn = Gtk::Button.new('')
+    @quit_btn = Gtk::Button.new('')
   end
     # [Brief] Initializes the string variables that will be apresented for the user
     # [Receive] <html><font color=red>Nothing</font></html>
     # [Return] <html><font color=red>Nothing</font></html>  
   def create_texts
-    self.title = $idiom.tictactoe
-    @new_btn.label = $idiom.new_game
-    @quit_btn.label = $idiom.quit
-    @default_size_btn.label = $idiom.default_size
+    self.title = $glob.idiom.tictactoe
+    @new_btn.label = $glob.idiom.new_game
+    @quit_btn.label = $glob.idiom.quit
+    @default_size_btn.label = $glob.idiom.default_size
   end  
     # [Brief] Declare the signals
     # [Receive] <html><font color=red>Nothing</font></html>
     # [Return] <html><font color=red>Nothing</font></html>  
   def declare_signals
-    self.signal_connect("delete_event"){Gtk.main_quit}
-    @new_btn.signal_connect("clicked"){
-      $num_moves = -1
-      $btns.each{|btn| btn.label_widget.set_markup($Null_markup)}
-      $opts_window.show_all
+    self.signal_connect(:delete_event){Gtk.main_quit}
+    @new_btn.signal_connect(:clicked){
+      $glob.num_moves = -1
+      $glob.btns.each{|btn| btn.label_widget.set_markup($glob.null_markup)}
+      $windows.opt.show_all
     }
-    @quit_btn.signal_connect("clicked"){Gtk.main_quit}
-    @default_size_btn.signal_connect("clicked"){self.resize(200,250)}
+    @quit_btn.signal_connect(:clicked){Gtk.main_quit}
+    @default_size_btn.signal_connect(:clicked){self.resize(200,250)}
   end  
     # [Brief] Agroup the components, making one englobe the other
     # [Receive] <html><font color=red>Nothing</font></html>
@@ -303,9 +303,9 @@ class BoardWindow < Gtk::Window
   def agroup_components
     table = Gtk::Table.new(11,8)
     (0..8).each{|i|
-      x = $btns[i].x
-      y = $btns[i].y
-      table.attach($btns[i],(x*2)+1,(x*2)+2,(y*2)+1,(y*2)+2)
+      x = $glob.btns[i].x
+      y = $glob.btns[i].y
+      table.attach($glob.btns[i],(x*2)+1,(x*2)+2,(y*2)+1,(y*2)+2)
     }
     (0..3).each{|i|
       table.attach(Gtk::VSeparator.new,i*2,(i*2)+1,0,8)
@@ -315,34 +315,6 @@ class BoardWindow < Gtk::Window
     table.attach(@default_size_btn,0,8,9,10)
     table.attach(@quit_btn,0,8,10,11)
     self.add(table)
-  end  
-end  
-
-
-
-# Manages objects players
-class Players < Array
-  # <b>+Object+:</b> Represents the player who are playing.("act_p" means Active_Player)
-  attr_accessor :act_p
-  alias ori_init initialize
-    # [Brief] Initial method, were the processes are divided in other methods
-    # [Receive] <html><font color=red>Nothing</font></html>
-    # [Return] <html><font color=red>Nothing</font></html>
-  def initialize(p1,p2)
-    ori_init
-    push p1
-    push p2
-    self[0].id = 0
-    self[0].mark_markup = $X_markup
-    self[1].id = 1
-    self[1].mark_markup = $O_markup    
-    @act_p = self[0]
-  end
-    # [Brief] Switch the active player.
-    # [Receive] <html><font color=red>Nothing</font></html>
-    # [Return] <html><font color=red>Nothing</font></html>
-  def switch_player
-    @act_p = @act_p.id == 0 ? self[1] : self[0]
   end  
 end  
 
@@ -362,7 +334,7 @@ class BoardToolButton < Gtk::ToolButton
     # [Receive] <html><list><li><b>+String+:</b> markup</li><li><b>+Integer+:</b> x</li><li><b>+Integer+:</b> y</li></list></html>
     # [Return] <html><font color=red>Nothing</font></html>
   def initialize(markup,x,y)
-    ori_init(nil,"")
+    ori_init(nil,'')
     init_vars(markup,x,y)
     declare_signals
   end  
@@ -405,18 +377,18 @@ class BoardToolButton < Gtk::ToolButton
     # [Receive] <html><font color=red>Nothing</font></html>
     # [Return] <html><font color=red>Nothing</font></html>  
   def declare_signals
-    self.signal_connect("clicked"){|choiced|
+    self.signal_connect(:clicked){|choiced|
       click_used = false
-      if choiced.label_widget.markup == $Null_markup
+      if choiced.label_widget.markup == $glob.null_markup
         if $player.act_p.human?
           $last_btn = choiced
-          $num_moves += 1
+          $glob.num_moves += 1
           choiced.label_widget.set_markup($player.act_p.mark_markup)
           $player.switch_player
           click_used = true
           check_victory
         end
-        if !$player.act_p.human? and click_used and $num_moves < 8
+        if !$player.act_p.human? and click_used and $glob.num_moves < 8
           choiced = $player.act_p.turn
           $last_btn = choiced
           choiced.label_widget.set_markup($player.act_p.mark_markup)
@@ -431,11 +403,11 @@ class BoardToolButton < Gtk::ToolButton
   # [Return] <html><font color=red>Nothing</font></html>    
   def check_victory
     if victory?
-      $msg_window.msg.set_text($idiom.player + ($player.act_p.mark_markup == $X_markup ? ' O ' : ' X ') + $idiom.win)
-      $msg_window.show_all
-    elsif $num_moves >= 8
-      $msg_window.msg.set_text($idiom.draw)
-      $msg_window.show_all
+      $windows.msg_win.msg.set_text($glob.idiom.player + ($player.act_p.mark_markup == $glob.x_markup ? ' O ' : ' X ') + $glob.idiom.win)
+      $windows.msg_win.show_all
+    elsif $glob.num_moves >= 8
+      $windows.msg_win.msg.set_text($glob.idiom.draw)
+      $windows.msg_win.show_all
     end
   end    
   
@@ -447,36 +419,36 @@ class BoardToolButton < Gtk::ToolButton
     y = $last_btn.y
     vic = false
     if x == 0
-      vic = check_2_btns($btns.by_c(x + 1,y),$btns.by_c(x + 2,y))
+      vic = check_2_btns($glob.btns.by_c(x + 1,y),$glob.btns.by_c(x + 2,y))
     elsif x == 1
-      vic = check_2_btns($btns.by_c(x + 1,y),$btns.by_c(x - 1,y))
+      vic = check_2_btns($glob.btns.by_c(x + 1,y),$glob.btns.by_c(x - 1,y))
     else
-      vic = check_2_btns($btns.by_c(x - 1,y),$btns.by_c(x - 2,y))
+      vic = check_2_btns($glob.btns.by_c(x - 1,y),$glob.btns.by_c(x - 2,y))
     end
     if vic == false
       if y == 0 
-        vic = check_2_btns($btns.by_c(x,y + 1),$btns.by_c(x,y + 2))
+        vic = check_2_btns($glob.btns.by_c(x,y + 1),$glob.btns.by_c(x,y + 2))
       elsif y == 1
-        vic = check_2_btns($btns.by_c(x,y + 1),$btns.by_c(x,y - 1))
+        vic = check_2_btns($glob.btns.by_c(x,y + 1),$glob.btns.by_c(x,y - 1))
       else
-        vic = check_2_btns($btns.by_c(x,y - 1),$btns.by_c(x,y - 2))
+        vic = check_2_btns($glob.btns.by_c(x,y - 1),$glob.btns.by_c(x,y - 2))
       end  
     else
       return vic
     end  
     if vic == false
       if x == 0 and y == 0
-        vic = check_2_btns($btns.by_c(1,1),$btns.by_c(2,2))
+        vic = check_2_btns($glob.btns.by_c(1,1),$glob.btns.by_c(2,2))
       elsif x == 2 and y == 2
-        vic = check_2_btns($btns.by_c(0,0),$btns.by_c(1,1))
+        vic = check_2_btns($glob.btns.by_c(0,0),$glob.btns.by_c(1,1))
       elsif x == 2 and y == 0
-        vic = check_2_btns($btns.by_c(1,1),$btns.by_c(0,2))
+        vic = check_2_btns($glob.btns.by_c(1,1),$glob.btns.by_c(0,2))
       elsif x == 0 and y == 2
-        vic = check_2_btns($btns.by_c(1,1),$btns.by_c(2,0))
+        vic = check_2_btns($glob.btns.by_c(1,1),$glob.btns.by_c(2,0))
       elsif x == 1 and y == 1
-        vic = check_2_btns($btns.by_c(0,0),$btns.by_c(2,2))
+        vic = check_2_btns($glob.btns.by_c(0,0),$glob.btns.by_c(2,2))
         return vic if vic != false
-        vic = check_2_btns($btns.by_c(2,0),$btns.by_c(0,2))
+        vic = check_2_btns($glob.btns.by_c(2,0),$glob.btns.by_c(0,2))
       end  
     end  
     return vic
@@ -528,7 +500,7 @@ class MessageWindow < Gtk::Window
   # [Receive] <html><font color=red>Nothing</font></html>
   # [Return] <html><font color=red>Nothing</font></html>
   def initialize
-    ori_init("")
+    ori_init('')
     init_vars
     declare_signals
     agroup_components
@@ -537,7 +509,7 @@ class MessageWindow < Gtk::Window
   # [Receive] <html><font color=red>Nothing</font></html>
   # [Return] <html><font color=red>Nothing</font></html>
   def init_vars
-    @msg = Gtk::Label.new("")
+    @msg = Gtk::Label.new('')
     self.resizable = false
     self.modal = true  
     self.window_position = Gtk::Window::POS_MOUSE    
@@ -546,10 +518,10 @@ class MessageWindow < Gtk::Window
   # [Receive] <html><font color=red>Nothing</font></html>
   # [Return] <html><font color=red>Nothing</font></html>  
   def declare_signals
-    self.signal_connect("delete_event"){
-      $num_moves = -1
-      $btns.each{|btn| btn.label_widget.set_markup($Null_markup)}
-      $opts_window.show_all
+    self.signal_connect(:delete_event){
+      $glob.num_moves = -1
+      $glob.btns.each{|btn| btn.label_widget.set_markup($glob.null_markup)}
+      $windows.opts_win.show_all
       self.hide
     }
   end  
@@ -583,7 +555,7 @@ class OptionsRadioButton < Gtk:: RadioButton
   # [Receive] <html><font color=red>Nothing</font></html>
   # [Return] <html><font color=red>Nothing</font></html>  
   def declare_signals
-    self.signal_connect("clicked"){
+    self.signal_connect(:clicked){
       self.group.each{|rd_btn| 
         if rd_btn.selected?
           rd_btn.selected = false
@@ -621,8 +593,8 @@ class OptionsWindow < Gtk::Window
     @mode_vbox = Gtk::VBox.new
     @idiom_vbox = Gtk::VBox.new
     @geral_vbox = Gtk::VBox.new
-    @new_btn = Gtk::Button.new("")
-    @quit_btn = Gtk::Button.new("")
+    @new_btn = Gtk::Button.new('')
+    @quit_btn = Gtk::Button.new('')
     self.resizable = false
     self.modal = true
     @mode_rdo = []
@@ -639,29 +611,29 @@ class OptionsWindow < Gtk::Window
   # [Receive] <html><font color=red>Nothing</font></html>
   # [Return] <html><font color=red>Nothing</font></html>   
   def create_texts
-    self.title = $idiom.options
-    @new_btn.label = $idiom.begin
-    @quit_btn.label = $idiom.quit
-    @idiom_rdo[0].label = $idiom.english
-    @idiom_rdo[1].label = $idiom.portuguese 
-    @mode_rdo[0].label = $idiom.player_player
-    @mode_rdo[1].label = $idiom.player_very_easy
-    @mode_rdo[2].label = $idiom.player_easy
-    @mode_rdo[3].label = $idiom.player_medium
-    @mode_rdo[4].label = $idiom.player_impossible    
+    self.title = $glob.idiom.options
+    @new_btn.label = $glob.idiom.begin
+    @quit_btn.label = $glob.idiom.quit
+    @idiom_rdo[0].label = $glob.idiom.english
+    @idiom_rdo[1].label = $glob.idiom.portuguese 
+    @mode_rdo[0].label = $glob.idiom.player_player
+    @mode_rdo[1].label = $glob.idiom.player_very_easy
+    @mode_rdo[2].label = $glob.idiom.player_easy
+    @mode_rdo[3].label = $glob.idiom.player_medium
+    @mode_rdo[4].label = $glob.idiom.player_impossible    
   end  
   # [Brief] Agroup the components, making one englobe the other
   # [Receive] <html><font color=red>Nothing</font></html>
   # [Return] <html><font color=red>Nothing</font></html>  
   def declare_signals
-    self.signal_connect("delete_event"){finish_commands}
-    @new_btn.signal_connect("clicked"){finish_commands}
-    @quit_btn.signal_connect("clicked"){Gtk.main_quit}
-    @idiom_rdo[0].signal_connect("clicked"){
+    self.signal_connect(:delete_event){finish_commands}
+    @new_btn.signal_connect(:clicked){finish_commands}
+    @quit_btn.signal_connect(:clicked){Gtk.main_quit}
+    @idiom_rdo[0].signal_connect(:clicked){
       change_idiom_to(:en)
       self.create_texts
     }
-    @idiom_rdo[1].signal_connect("clicked"){
+    @idiom_rdo[1].signal_connect(:clicked){
       change_idiom_to(:pt)
       self.create_texts
     }  
@@ -672,11 +644,11 @@ class OptionsWindow < Gtk::Window
   def finish_commands
     for i in 0..4
       if @mode_rdo[i].selected?
-        $nivel = i - 1
+        $glob.game_mode = i - 1
         break
       end  
     end
-    if $nivel == -1
+    if $glob.game_mode == -1
       $player = Players.new(Player.new,Player.new)
     else
       $player = Players.new(Player.new,CPU.new)
@@ -692,9 +664,9 @@ class OptionsWindow < Gtk::Window
   # [Receive] <b>+String+:</b> A Idiom
   # [Return] <html><font color=red>Nothing</font></html> 
   def change_idiom_to(idiom)
-    $idiom.idiom = idiom
+    $glob.idiom.idiom = idiom
     self.create_texts
-    $board_window.create_texts
+    $windows.board_win.create_texts
   end  
     # [Brief] Agroup the components, making one englobe the other
     # [Receive] <html><font color=red>Nothing</font></html>
@@ -830,42 +802,117 @@ class Idiom < Gtk::Button
   # [Receive] <html><font color=red>Nothing</font></html>
   # [Return] <b>+String+:</b> the phrase in the actual idiom.  
 end 
-begin 
-  #############################################################
-  ## Declaração de Variáveis
-  #############################################################
-  $idiom = Idiom.new
-  $nivel = -1
-  $num_moves = -1
-  $btns = BoardArrayBtns.new
-  $Null_markup = "<span face='Lucida Console' size='50'> </span>"
-  $X_markup = "<span face='Lucida Console' size='50'>X</span>"
-  $O_markup = "<span face='Lucida Console' size='50'>O</span>"
-  
-  #############################################################
-  ## Declaração de Componentes
-  #############################################################
-  ##################
-  ## => BOTÕES <= ##
-  ##################
-  (0..8).each{|i|
-    $btns[i] = BoardToolButton.new($Null_markup,i - Integer(i/3)*3,Integer(i/3))
-  }
-  
-  ###################  
-  ## => WINDOWS <= ##
-  ###################
-  $msg_window = MessageWindow.new 
-  $opts_window = OptionsWindow.new
-  $board_window = BoardWindow.new  
 
-  #############################################################
-  ## Demonstração dos Componentes
-  #############################################################
-  $board_window.show_all
-  $opts_window.show_all
-  #############################################################
-  ## Passa Controle Para Gtk
-  #############################################################
+# Manages the global variables
+class Global
+  # <b>+Object+:</b> Instance of class Idiom.
+  attr_reader :idiom
+  # <b>+String+:</b> Represents the null markup.
+  attr_reader :null_markup
+  # <b>+String+:</b> Represents the X markup.
+  attr_reader :x_markup
+  # <b>+String+:</b> Represents the O markup.
+  attr_reader :o_markup
+  # <b>+Object+:</b> Instance of class Btns.
+  attr_reader :btns
+  # <b>+Integer+:</b> game_mode of the CPU.
+  attr_accessor :game_mode
+  # <b>+Integer+:</b> Num of moves in the game.
+  attr_accessor :num_moves
+  # [Brief] Initializes variables
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <html><font color=red>Nothing</font></html>  
+  def initialize
+    @idiom = Idiom.new
+    @null_markup = "<span face='Lucida Console' size='50'> </span>"
+    @x_markup = "<span face='Lucida Console' size='50'>X</span>"
+    @o_markup = "<span face='Lucida Console' size='50'>O</span>"  
+    @btns = BoardArrayBtns.new
+    @game_mode = -1
+    @num_moves = -1 
+  end  
+end
+# Managens the windows
+class Windows
+  # <b>+Object+:</b> Instance of class MessageWindow.
+  attr_reader :msg_win
+  # <b>+Object+:</b> Instance of class OptionsWindow.
+  attr_reader :opts_win
+  # <b>+Object+:</b> Instance of class Boardindow.
+  attr_reader :board_win
+  # [Brief] Initializes variables
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <html><font color=red>Nothing</font></html>   
+  def initialize
+    @msg_win = MessageWindow.new
+    @opts_win = OptionsWindow.new
+    @board_win = BoardWindow.new
+  end  
+end  
+# Manages objects players
+class Players < Array
+  # <b>+Object+:</b> Represents the player who are playing.("act_p" means Active_Player)
+  attr_accessor :act_p
+  alias ori_init initialize
+  # [Brief] Initializes variables
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <html><font color=red>Nothing</font></html> 
+  def initialize(p1,p2)
+    ori_init
+    push p1
+    push p2
+    self[0].id = 0
+    self[0].mark_markup = $glob.x_markup
+    self[1].id = 1
+    self[1].mark_markup = $glob.o_markup    
+    @act_p = self[0]
+  end
+    # [Brief] Switch the active player.
+    # [Receive] <html><font color=red>Nothing</font></html>
+    # [Return] <html><font color=red>Nothing</font></html>
+  def switch_player
+    @act_p = @act_p.id == 0 ? self[1] : self[0]
+  end  
+end  
+begin 
+  $glob = Global.new
+  (0..8).each{|i|
+    $glob.btns[i] = BoardToolButton.new($glob.null_markup,i - Integer(i/3)*3,Integer(i/3))
+  }
+
+  $windows = Windows.new
+  $windows.board_win.show_all
+  $windows.opts_win.show_all
+
   Gtk.main
 end  
+##################################################################
+###  NEWS  #######################################################
+##################################################################
+## => Creation of two classes
+##   - Global -> Manages the global variables
+##   - Windows -> Manages the windows
+## => Utilization of symbols to send the type of signal.
+## => Change the name of the variable nivel to game_mode
+##
+##################################################################
+##################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

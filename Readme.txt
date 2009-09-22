@@ -30,3 +30,11 @@
       - Switch the class name "Human" to "Player"
       - Utilization of symbols to represent the idiom
       - Compatible with RDoc
+
+  Version 1.2.0.0
+    Description: In this version i'm follow more suggestions of 
+                 RubyOnBr members to make a better source code.
+    Changes:
+      - Creation of classes Global and Windows
+      - Utilization of symbols to send the type of signal.
+      - Change the name of the variable nivel to game_mode
