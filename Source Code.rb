@@ -1,33 +1,13 @@
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-### TrueClass 
-###-------------------------------------------------------------------------
-### Modificação para criar o operador lógico XOR
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-class TrueClass
-  def xor(cond)
-    return !cond
-  end  
-end
+#
+# [Author] HugoLnx/HugoLinux
+# [Credits] <b>To Help-me in this version:</b> RubyonBr Forum ( http://forum.rubyonbr.org/forums/ )
+# [Version] 1.1.0.0
+#
 
-
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-### FalseClass 
-###-------------------------------------------------------------------------
-### Modificação para criar o operador lógico XOR
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-class FalseClass
-  def xor(cond)
-    return cond
-  end    
-end
-
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-### Array
-###-------------------------------------------------------------------------
-### Modificação para criar um método que conta quantos dos elementos da
-### array tornam a expressão lógica verdadeira.
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+# Array class
 class Array
+  # [Receive] <b>+Block_of_Commands+</b>
+  # [Return] <b>+Integer+:</b> The quantity of elements of Array that make the block of commands true.
   def count
     count = 0
     self.each{|slot| count += 1 if yield(slot)}
@@ -36,17 +16,17 @@ class Array
 end
 
 
-
 require 'gtk2'
+
+# Graphic Interface
 module Gtk
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-### Label
-###-------------------------------------------------------------------------
-### Modificação para que a markup da instancia possa ser modificada/lida
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
   class Label
+    # Special formatation for the text in label
     attr_reader :markup
     alias ori_set_markup set_markup
+    # [Brief] Update the @markup when it's used the set_markup    
+    # [Receive] <b>+String+:</b>markup
+    # [Return] <html><font color=red>Nothing</font></html>
     def set_markup(markup)
       @markup = markup
       ori_set_markup(@markup)
@@ -54,52 +34,55 @@ module Gtk
   end    
 end
 
-
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-### Human
-###-------------------------------------------------------------------------
-### Classe que representa o jogador humano
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-class Human
-  attr_accessor :id, :mark_markup
+# This class represent's the player
+class Player
+  # <b>+Integer+:</b> Identificação que se dá à instancia dessa classe
+  attr_accessor :id
+  # <b>+String+:</b> Representa a marca utilizada pelo jogador
+  attr_accessor :mark_markup
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+Boolean+:</b> if the instance is a human player or not.
   def human?
-    return self.class == Human
+    return self.class == Player
   end
 end
 
 
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-### CPU
-###-------------------------------------------------------------------------
-### Classe que representa a CPU
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-class CPU < Human
+# This class represent's a CPU player
+class CPU < Player
   alias ori_init initialize
+  # [Brief] Boots the local variables  
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <html><font color=red>Nothing</font></html>
   def initialize
     @strategy = 0
     @my_lst_btn = nil
     ori_init
   end
   
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+Object+:</b> The button choiced by Artificial Inteligence
   def turn
     @choiced = nil
     @o_markup = mark_markup == $X_markup ? $O_markup : $X_markup
     $num_moves += 1
     if $num_moves > 2 and $nivel != 0
       @choiced = take_care_of_checkmate("try_do") if $nivel >= 2
-      if @choiced == nil
+      if @choiced.nil?
         @choiced = take_care_of_checkmate("previne") if $nivel >= 1
       end  
       return @choiced if @choiced != nil
     end
     valid = $btns.find_all{|btn| btn.label_widget.markup == $Null_markup}
     valid = use_invincible_strategies(valid) if $nivel == 3
-    @choiced = valid.class == Array ? valid[rand(valid.size - 1)] : valid
+    @choiced = valid[rand(valid.size - 1)]
     return @choiced
   ensure
     @my_lst_btn = @choiced
   end
   
+  # [Receive] <b>+String+:</b> Direction
+  # [Return] <b>+String+:</b> The opost direction
   def oposit(direction)
     if direction == "top"
       return "bottom"
@@ -111,90 +94,87 @@ class CPU < Human
       return "right"
     end
     return nil
-  end  
-  
+  end
+  # Aplica estratégias que tornam a CPU invencível.
+  # [Return] <b>+Array+:</b> All the buttons that can be played
   def use_invincible_strategies(valid)
-    
     if $num_moves == 0
-      valid = valid.find_all{|btn| btn.type[0] == "tip" or btn.type[0] == "center"}
+      return valid.find_all{|btn| btn.type[0] == "tip" or btn.type[0] == "center"}
     end
     
     if $num_moves == 2
       if @my_lst_btn.type[0] == "center"
         if $last_btn.type[0] == "tip"
-          return $btns.by_t(["tip",oposit($last_btn.type[1]),oposit($last_btn.type[2])])
+          return [$btns.by_t(["tip",oposit($last_btn.type[1]),oposit($last_btn.type[2])])]
         elsif $last_btn.type[0] == "side"
-          valid = valid.find_all{|btn| btn.type[0] == "tip"}
+          return valid.find_all{|btn| btn.type[0] == "tip"}
           if $last_btn.type[1] != nil
-            valid = valid.find_all{|btn| btn.type[1] == oposit($last_btn.type[1])}
+            return valid.find_all{|btn| btn.type[1] == oposit($last_btn.type[1])}
           else
-            valid = valid.find_all{|btn| btn.type[2] == oposit($last_btn.type[2])}
+            return valid.find_all{|btn| btn.type[2] == oposit($last_btn.type[2])}
           end
         end
       elsif @my_lst_btn.type[0] == "tip"
         if $last_btn.type[1] == oposit(@my_lst_btn.type[1]) and $last_btn.type[2] == 
         oposit(@my_lst_btn.type[2])
           @strategy = 1
-          valid = valid.find_all{|btn| btn.type[0] == "tip"}
+          return valid.find_all{|btn| btn.type[0] == "tip"}
         elsif $last_btn.type[0] == "center" or $last_btn.type[0] == "tip"
-          @choiced = $btns.by_t(["tip",oposit(@my_lst_btn.type[1]),oposit(@my_lst_btn.
-          type[2])])
-          return @choiced
+          return [$btns.by_t(["tip",oposit(@my_lst_btn.type[1]),oposit(@my_lst_btn.type[2])])]
         else
           @strategy = 2
           if $last_btn.type[1] != nil
-            @choiced = $btns.by_t(["tip",oposit($last_btn.type[1]),@my_lst_btn.type[2]])
+            return [$btns.by_t(["tip",oposit($last_btn.type[1]),@my_lst_btn.type[2]])]
           else
-            @choiced = $btns.by_t(["tip",@my_lst_btn.type[1],oposit($last_btn.type[2])])
+            return [$btns.by_t(["tip",@my_lst_btn.type[1],oposit($last_btn.type[2])])]
           end
-          return @choiced
         end
       end  
     end
     
     if $num_moves == 4
       if @strategy == 1
-        return @choiced = valid.find_all{|btn| btn.type[0] == "tip"}[0]
+        return valid.find_all{|btn| btn.type[0] == "tip"}[0]
       elsif @strategy == 2
-        @choiced = $btns.by_t(["center"])
-        return @choiced
+        return [$btns.by_t(["center"])]
       end  
     end
     if $num_moves == 1
       if $last_btn.type[0] == "center"
-        valid = valid.find_all{|btn| btn.type[0] == "tip"}
+        return valid.find_all{|btn| btn.type[0] == "tip"}
       else
         @strategy = [1,$last_btn] if $last_btn.type[0] == "side"
-        @choiced = $btns.by_t(["center"])
-        return @choiced
+        return [$btns.by_t(["center"])]
       end
     end
     if $num_moves == 3
       if $last_btn.type[1] == oposit(@my_lst_btn.type[1]) and $last_btn.type[2] == 
       oposit(@my_lst_btn.type[2])
-        valid = valid.find_all{|btn| btn.type[0] == "tip"}
+        return valid.find_all{|btn| btn.type[0] == "tip"}
       end
       if $btns.count{|btn| btn.type[0] == "tip" and btn.label_widget.markup == 
         @o_markup} == 2
-        valid = valid.find_all{|btn| btn.type[0] == "side"}
+        return valid.find_all{|btn| btn.type[0] == "side"}
       end
       if @strategy[0] == 1
         first_btn = @strategy[1]
-        if (first_btn.type[1] == nil).xor($last_btn.type[1] == nil)
-          if first_btn.type[1] == nil
-            @choiced = $btns.by_t(["tip",$last_btn.type[1],first_btn.type[2]])
+        if (first_btn.type[1].nil?) ^ ($last_btn.type[1].nil?)
+          if first_btn.type[1].nil
+            return [$btns.by_t(["tip",$last_btn.type[1],first_btn.type[2]])]
           else
-            @choiced = $btns.by_t(["tip",first_btn.type[1],$last_btn.type[2]])
+            return [$btns.by_t(["tip",first_btn.type[1],$last_btn.type[2]])]
           end
-          return @choiced
         else
-          valid = valid.find_all{|btn| btn.type[0] == "tip"}
+          return [valid.find_all{|btn| btn.type[0] == "tip"}]
         end  
       end  
     end
+    puts "RETURN VALID"
     return valid
   end  
   
+  # [Receive] <b>+String+:</b> Type of care, if type == "previne", will prevent a defeat, else, will hold the final victory move.
+  # [Return] <b>+Object+:</b> A button
   def take_care_of_checkmate(type)
     if type == "previne"
       lst_btn = $last_btn
@@ -213,7 +193,7 @@ class CPU < Human
     else
       null_btn = check_2_btns($btns.by_c(x - 1,y),$btns.by_c(x - 2,y),compare_markup)
     end
-    if null_btn == nil
+    if null_btn.nil?
       if y == 0 
         null_btn = check_2_btns($btns.by_c(x,y + 1),$btns.by_c(x,y + 2),compare_markup)
       elsif y == 1
@@ -224,7 +204,7 @@ class CPU < Human
     else
       return null_btn
     end  
-    if null_btn == nil
+    if null_btn.nil?
       if x == 0 and y == 0
         null_btn = check_2_btns($btns.by_c(1,1),$btns.by_c(2,2),compare_markup)
       elsif x == 2 and y == 2
@@ -242,6 +222,9 @@ class CPU < Human
     return null_btn
   end
 
+    # [Brief] Test if in 2 buttons, one is nil, and the other have the received mark
+    # [Receive] <html><font color=red>Nothing</font></html>
+    # [Return] <b>+Nil+</b>(if test result false) or <b>+Object:+</b> The Null button
   def check_2_btns(btn1,btn2,compare_markup)
     b1_mark = btn1.label_widget.markup
     b2_mark = btn2.label_widget.markup
@@ -258,7 +241,7 @@ class CPU < Human
       elsif b2_mark == compare_markup
         enemy_btn = btn2
       end
-      if null_btn == nil or enemy_btn == nil
+      if null_btn.nil? or enemy_btn.nil?
         null_btn = nil
         enemy_btn = nil
       end  
@@ -270,13 +253,12 @@ end
 
 
 
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-### BoardWindow
-###-------------------------------------------------------------------------
-### Janela que apresentará o tabuleiro
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+# The window that will apresent the board
 class BoardWindow < Gtk::Window
   alias ori_init initialize
+    # [Brief] Initial method, were the processes are divided in other methods
+    # [Receive] <html><font color=red>Nothing</font></html>
+    # [Return] <html><font color=red>Nothing</font></html>
   def initialize
     ori_init
     init_vars
@@ -284,18 +266,27 @@ class BoardWindow < Gtk::Window
     declare_signals
     agroup_components
   end
+    # [Brief] Initializes variables
+    # [Receive] <html><font color=red>Nothing</font></html>
+    # [Return] <html><font color=red>Nothing</font></html>
   def init_vars
     self.resize(200,250)
     @new_btn = Gtk::Button.new("")
     @default_size_btn = Gtk::Button.new("")
     @quit_btn = Gtk::Button.new("")
   end
+    # [Brief] Initializes the string variables that will be apresented for the user
+    # [Receive] <html><font color=red>Nothing</font></html>
+    # [Return] <html><font color=red>Nothing</font></html>  
   def create_texts
     self.title = $idiom.tictactoe
     @new_btn.label = $idiom.new_game
     @quit_btn.label = $idiom.quit
     @default_size_btn.label = $idiom.default_size
   end  
+    # [Brief] Declare the signals
+    # [Receive] <html><font color=red>Nothing</font></html>
+    # [Return] <html><font color=red>Nothing</font></html>  
   def declare_signals
     self.signal_connect("delete_event"){Gtk.main_quit}
     @new_btn.signal_connect("clicked"){
@@ -306,6 +297,9 @@ class BoardWindow < Gtk::Window
     @quit_btn.signal_connect("clicked"){Gtk.main_quit}
     @default_size_btn.signal_connect("clicked"){self.resize(200,250)}
   end  
+    # [Brief] Agroup the components, making one englobe the other
+    # [Receive] <html><font color=red>Nothing</font></html>
+    # [Return] <html><font color=red>Nothing</font></html>    
   def agroup_components
     table = Gtk::Table.new(11,8)
     (0..8).each{|i|
@@ -325,14 +319,15 @@ class BoardWindow < Gtk::Window
 end  
 
 
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-### Players
-###-------------------------------------------------------------------------
-### Classe que gerencia os objetos jogadores
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+
+# Manages objects players
 class Players < Array
-attr_accessor :act_p
+  # <b>+Object+:</b> Represents the player who are playing.("act_p" means Active_Player)
+  attr_accessor :act_p
   alias ori_init initialize
+    # [Brief] Initial method, were the processes are divided in other methods
+    # [Receive] <html><font color=red>Nothing</font></html>
+    # [Return] <html><font color=red>Nothing</font></html>
   def initialize(p1,p2)
     ori_init
     push p1
@@ -343,23 +338,37 @@ attr_accessor :act_p
     self[1].mark_markup = $O_markup    
     @act_p = self[0]
   end
+    # [Brief] Switch the active player.
+    # [Receive] <html><font color=red>Nothing</font></html>
+    # [Return] <html><font color=red>Nothing</font></html>
   def switch_player
     @act_p = @act_p.id == 0 ? self[1] : self[0]
   end  
 end  
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-### BoardToolButton
-###-------------------------------------------------------------------------
-### Classe dos botões do tabuleiro.
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+
+# The board toolbutton class
 class BoardToolButton < Gtk::ToolButton
-  attr_reader :x, :y, :type
+  # <b>+Integer+:</b> Button x coordenate
+  attr_reader :x
+  # <b>+Integer+:</b> Button y coordenate
+  attr_reader :y
+  # [General] <b>+Array+:</b> Type of button.</br>
+  # * <b>type[0]</b> = "center" or "tip" or "side";
+  # * <b>type[1]</b> = "left" or "right" or nil;
+  # * <b>type[2]</b> = "top" or "bottom" or nil.
+  attr_reader :type
   alias ori_init initialize
+    # [Brief] Initial method, were the processes are divided in other methods
+    # [Receive] <html><list><li><b>+String+:</b> markup</li><li><b>+Integer+:</b> x</li><li><b>+Integer+:</b> y</li></list></html>
+    # [Return] <html><font color=red>Nothing</font></html>
   def initialize(markup,x,y)
     ori_init(nil,"")
     init_vars(markup,x,y)
     declare_signals
   end  
+    # [Brief] Initializes variables
+    # [Receive] <html><list><li><b>+String+:</b> markup</li><li><b>+Integer+:</b> x</li><li><b>+Integer+:</b> y</li></list></html>
+    # [Return] <html><font color=red>Nothing</font></html>
   def init_vars(markup,x,y)
     @type = []
     if x == 1 and y == 1
@@ -392,6 +401,9 @@ class BoardToolButton < Gtk::ToolButton
     @y = y   
     self.label_widget = Gtk::Label.new.set_markup(markup)
   end   
+    # [Brief] Declare the signals
+    # [Receive] <html><font color=red>Nothing</font></html>
+    # [Return] <html><font color=red>Nothing</font></html>  
   def declare_signals
     self.signal_connect("clicked"){|choiced|
       click_used = false
@@ -401,30 +413,35 @@ class BoardToolButton < Gtk::ToolButton
           $num_moves += 1
           choiced.label_widget.set_markup($player.act_p.mark_markup)
           $player.switch_player
-          click_used = check_victory
+          click_used = true
+          check_victory
         end
         if !$player.act_p.human? and click_used and $num_moves < 8
           choiced = $player.act_p.turn
           $last_btn = choiced
           choiced.label_widget.set_markup($player.act_p.mark_markup)
           $player.switch_player
-          click_used = true
           check_victory
         end
       end
     }    
-  end  
+  end
+  # [Brief] Puts the correct message in MessageWindow, and show her.
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <html><font color=red>Nothing</font></html>    
   def check_victory
     if victory?
       $msg_window.msg.set_text($idiom.player + ($player.act_p.mark_markup == $X_markup ? ' O ' : ' X ') + $idiom.win)
       $msg_window.show_all
-      return false
     elsif $num_moves >= 8
       $msg_window.msg.set_text($idiom.draw)
       $msg_window.show_all
     end
-    return true
   end    
+  
+  # [Brief] Tests if happened a victory move.
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <html><font color=red>Nothing</font></html>
   def victory?
     x = $last_btn.x
     y = $last_btn.y
@@ -465,6 +482,9 @@ class BoardToolButton < Gtk::ToolButton
     return vic
   end  
 
+  # [Brief] Test if the tow received buttons have the some mark of the last marked.
+  # [Receive] <html><list><li><b>+Object+:</b> A Button</li><li><b>+Object+:</b> A Button</li></list></html>
+  # [Return] <b>+Boolean+</b>
   def check_2_btns(btn1,btn2)
     b1_mark = btn1.label_widget.markup
     b2_mark = btn2.label_widget.markup
@@ -474,47 +494,57 @@ class BoardToolButton < Gtk::ToolButton
       return false
     end  
   end     
+  # Recebe uma marca, e testa se a marca do botão é igual a recebida
+  # [Brief] Test if the received markup are equal of the button markup
+  # [Receive] <b>+String+</b> markup
+  # [Return] <b>+Boolean+</b>  
   def marked?(mark_markup)
     return self.label_widget.markup == mark_markup
   end  
 end  
-
-
-
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-### BoardArrayBtns
-###-------------------------------------------------------------------------
-### Array especial, para guardar Botões, que terá métodos especiais para o
-### tratamento das mesmas
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+# Array especial, para guardar Botões, que terá métodos especiais para o
+# tratamento das mesmas
+# Special array class to keep buttons, that have special methods for their tratament.
 class BoardArrayBtns < Array
+  # [Brief] Receive coordenates x and y, and return the button in this coordenates
+  # [Receive] <html><list><li><b>+Integer+:</b> Coordenate x</li><li><b>+Integer+:</b> Coordenate y</li></list></html>
+  # [Return] <b>+Object+:</b> Button
   def by_c(x,y)
     return self[x + y*3]
   end
+  # [Brief] Receive a type, and return the button with this type
+  # [Receive] <b>+String+:</b> type
+  # [Return] <b>+Object+:</b> Button  
   def by_t(type)
     return self.find_all{|slot| slot.type == type}[0]
   end  
-end  
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-### MessageWindow
-###-------------------------------------------------------------------------
-### Janela que mostra o resultado do jogo
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+end
+# Show the result of the game.
 class MessageWindow < Gtk::Window
+  # <b>+String+:</b> Represents the menssage that will be shown in the BoardWindow.
   attr_accessor :msg
   alias ori_init initialize
+  # [Brief] Initial method, were the processes are divided in other methods
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <html><font color=red>Nothing</font></html>
   def initialize
     ori_init("")
     init_vars
     declare_signals
     agroup_components
   end  
+  # [Brief] Initializes variables
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <html><font color=red>Nothing</font></html>
   def init_vars
     @msg = Gtk::Label.new("")
     self.resizable = false
     self.modal = true  
     self.window_position = Gtk::Window::POS_MOUSE    
   end
+  # [Brief] Declare the signals
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <html><font color=red>Nothing</font></html>  
   def declare_signals
     self.signal_connect("delete_event"){
       $num_moves = -1
@@ -523,28 +553,35 @@ class MessageWindow < Gtk::Window
       self.hide
     }
   end  
+    # [Brief] Agroup the components, making one englobe the other
+    # [Receive] <html><font color=red>Nothing</font></html>
+    # [Return] <html><font color=red>Nothing</font></html>  
   def agroup_components
     self.add(@msg)
   end  
 end  
-
-
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-### OptionsRadioButton
-###-------------------------------------------------------------------------
-### RadioButton da janela de opções
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+# RadioButton of the OptionsWindow
 class OptionsRadioButton < Gtk:: RadioButton
   alias ori_init initialize
+  # <b>+Boolean+:</b> It's true if the button is selected.
   attr_writer :selected
+  # [Brief] Initial method, were the processes are divided in other methods
+  # [Receive] <b>+Object+:</b> A button, to in his group.
+  # [Return] <html><font color=red>Nothing</font></html>
   def initialize(group)
     ori_init(group)
     init_vars
     declare_signals
   end
+  # [Brief] Initializes variables
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <html><font color=red>Nothing</font></html>
   def init_vars
     @selected = false
   end
+  # [Brief] Agroup the components, making one englobe the other
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <html><font color=red>Nothing</font></html>  
   def declare_signals
     self.signal_connect("clicked"){
       self.group.each{|rd_btn| 
@@ -555,19 +592,19 @@ class OptionsRadioButton < Gtk:: RadioButton
       @selected = true
     }
   end  
+  # [Brief] Return if the button is selected or not
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+Boolean+:</b> @selected
   def selected?
     return @selected
   end  
 end  
-
-
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-### OptionsWindow
-###-------------------------------------------------------------------------
-### Janela de Opções
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+# Window of options
 class OptionsWindow < Gtk::Window
   alias ori_init initialize
+  # [Brief] Initial method, were the processes are divided in other methods
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <html><font color=red>Nothing</font></html>
   def initialize
     ori_init
     init_vars
@@ -576,6 +613,9 @@ class OptionsWindow < Gtk::Window
     agroup_components 
   end
   
+  # [Brief] Initializes variables
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <html><font color=red>Nothing</font></html>
   def init_vars
     @hbox = Gtk::HBox.new
     @mode_vbox = Gtk::VBox.new
@@ -595,6 +635,9 @@ class OptionsWindow < Gtk::Window
       @idiom_rdo[i] = Gtk::RadioButton.new(@idiom_rdo[0])
     }
   end
+  # [Brief] Initializes the string variables that will be apresented for the user
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <html><font color=red>Nothing</font></html>   
   def create_texts
     self.title = $idiom.options
     @new_btn.label = $idiom.begin
@@ -607,19 +650,25 @@ class OptionsWindow < Gtk::Window
     @mode_rdo[3].label = $idiom.player_medium
     @mode_rdo[4].label = $idiom.player_impossible    
   end  
+  # [Brief] Agroup the components, making one englobe the other
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <html><font color=red>Nothing</font></html>  
   def declare_signals
     self.signal_connect("delete_event"){finish_commands}
     @new_btn.signal_connect("clicked"){finish_commands}
     @quit_btn.signal_connect("clicked"){Gtk.main_quit}
     @idiom_rdo[0].signal_connect("clicked"){
-      change_idiom_to('en')
+      change_idiom_to(:en)
       self.create_texts
     }
     @idiom_rdo[1].signal_connect("clicked"){
-      change_idiom_to('pt')
+      change_idiom_to(:pt)
       self.create_texts
     }  
   end  
+  # [Brief] Execute the commands that transfer the Options Window to the Board Window
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <html><font color=red>Nothing</font></html>    
   def finish_commands
     for i in 0..4
       if @mode_rdo[i].selected?
@@ -628,9 +677,9 @@ class OptionsWindow < Gtk::Window
       end  
     end
     if $nivel == -1
-      $player = Players.new(Human.new,Human.new)
+      $player = Players.new(Player.new,Player.new)
     else
-      $player = Players.new(Human.new,CPU.new)
+      $player = Players.new(Player.new,CPU.new)
     end
     if !$player.act_p.human?
       choiced = $player.act_p.turn
@@ -639,11 +688,17 @@ class OptionsWindow < Gtk::Window
     end
     self.hide
   end  
+  # [Brief] Change the idiom of the game.
+  # [Receive] <b>+String+:</b> A Idiom
+  # [Return] <html><font color=red>Nothing</font></html> 
   def change_idiom_to(idiom)
     $idiom.idiom = idiom
     self.create_texts
     $board_window.create_texts
   end  
+    # [Brief] Agroup the components, making one englobe the other
+    # [Receive] <html><font color=red>Nothing</font></html>
+    # [Return] <html><font color=red>Nothing</font></html>  
   def agroup_components
     (0..4).each{|i|
       @mode_vbox.pack_start(@mode_rdo[i])
@@ -659,91 +714,122 @@ class OptionsWindow < Gtk::Window
     self.add(@geral_vbox)
   end  
 end  
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-### Idiom
-###-------------------------------------------------------------------------
-### Classe que controla o idioma que estará o jogo
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+# Controls the game's idiom.
 class Idiom < Gtk::Button
+  # <b>+String+:</b> The actual idiom of the game.
   attr_writer :idiom
+  # [Brief] Initial method, that initialize's the idiom and create a hash variable for every phrase of the game
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <html><font color=red>Nothing</font></html>    
   def initialize
-    @idiom = 'en'
-    @new_game = {'en'=>'New Game','pt' =>'Novo Jogo'}
-    @begin = {'en'=>'Begin','pt' =>'Começar'}
-    @quit = {'en'=>'Quit','pt' =>'Sair'}
-    @default_size = {'en'=>'Default Size','pt' =>'Tamanho Padrão'}
-    @player_player = {'en'=>'Player vs Player','pt' =>'Jogador vs Jogador'}
-    @player_very_easy = {'en'=>'Player vs CPU Very Easy','pt' =>'Jogador vs CPU Muito Fácil'}
-    @player_easy = {'en'=>'Player vs CPU Easy','pt' =>'Jogador vs CPU Fácil'}
-    @player_medium = {'en'=>'Player vs CPU Medium','pt' =>'Jogador vs CPU Médio'}
-    @player_impossible = {'en'=>'Player vs CPU Impossible','pt' =>'Jogador vs CPU Impossível'}
-    @draw = {'en'=>'Draw','pt' =>'Empate'}
-    @win = {'en'=>'Win','pt' =>'Venceu'}
-    @lose = {'en'=>'Lose','pt' =>'Perdeu'}
-    @tictactoe = {'en'=>'Tic Tac Toe','pt' =>'Jogo da Velha'}
-    @options = {'en'=>'Options','pt' =>'Opções'}
-    @notification = {'en'=>'Notification','pt' =>'Aviso'}
-    @player = {'en'=>'Player','pt' =>'Jogador'}
-    @english = {'en'=>'English','pt' =>'Inglês'}
-    @portuguese = {'en'=>'Portuguese','pt' =>'Português'}
+    @idiom = :en
+    @new_game = {:en=>'New Game',:pt =>'Novo Jogo'}
+    @begin = {:en=>'Begin',:pt =>'Começar'}
+    @quit = {:en=>'Quit',:pt =>'Sair'}
+    @default_size = {:en=>'Default Size',:pt =>'Tamanho Padrão'}
+    @player_player = {:en=>'Player vs Player',:pt =>'Jogador vs Jogador'}
+    @player_very_easy = {:en=>'Player vs CPU Very Easy',:pt =>'Jogador vs CPU Muito Fácil'}
+    @player_easy = {:en=>'Player vs CPU Easy',:pt =>'Jogador vs CPU Fácil'}
+    @player_medium = {:en=>'Player vs CPU Medium',:pt =>'Jogador vs CPU Médio'}
+    @player_impossible = {:en=>'Player vs CPU Impossible',:pt =>'Jogador vs CPU Impossível'}
+    @draw = {:en=>'Draw',:pt =>'Empate'}
+    @win = {:en=>'Win',:pt =>'Venceu'}
+    @lose = {:en=>'Lose',:pt =>'Perdeu'}
+    @tictactoe = {:en=>'Tic Tac Toe',:pt =>'Jogo da Velha'}
+    @options = {:en=>'Options',:pt =>'Opções'}
+    @notification = {:en=>'Notification',:pt =>'Aviso'}
+    @player = {:en=>'Player',:pt =>'Jogador'}
+    @english = {:en=>'English',:pt =>'Inglês'}
+    @portuguese = {:en=>'Portuguese',:pt =>'Português'}
   end
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
   def new_game
     return @new_game[@idiom]
   end
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
   def begin
     return @begin[@idiom]
   end  
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
   def quit
     return @quit[@idiom]
   end
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
   def default_size
     return @default_size[@idiom]
   end   
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
   def player_player
     return @player_player[@idiom]
   end  
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
   def player_very_easy
     return @player_very_easy[@idiom]
   end  
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
   def player_easy
     return @player_easy[@idiom]
   end  
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
   def player_medium
     return @player_medium[@idiom]
   end  
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
   def player_impossible
     return @player_impossible[@idiom]
   end  
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
   def draw
     return @draw[@idiom]
   end  
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
   def win
     return @win[@idiom]
   end 
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
   def lose
     return @lose[@idiom]
   end 
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
   def tictactoe
     return @tictactoe[@idiom]
   end 
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
   def options
     return @options[@idiom]
   end   
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
   def player
     return @player[@idiom]
   end  
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
   def english
     return @english[@idiom]
   end  
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
   def portuguese
     return @portuguese[@idiom]
   end  
+  # [Receive] <html><font color=red>Nothing</font></html>
+  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
 end 
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
-### Main
-###-------------------------------------------------------------------------
-### Classe Principal
-###=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
 begin 
   #############################################################
   ## Declaração de Variáveis
