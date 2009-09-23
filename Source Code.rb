@@ -1,8 +1,11 @@
 #
 # [Author] HugoLnx/HugoLinux
 # [Credits] <b>To Help-me in this version:</b> RubyonBr Forum ( http://forum.rubyonbr.org/forums/ )
-# [Version] 1.2.0.0
+# [Version] 1.3.0.0
 #
+
+require 'gtk2'
+require 'I18n'
 
 # Array class
 class Array
@@ -14,9 +17,6 @@ class Array
     return count
   end  
 end
-
-
-require 'gtk2'
 
 # Graphic Interface
 module Gtk
@@ -279,10 +279,10 @@ class BoardWindow < Gtk::Window
     # [Receive] <html><font color=red>Nothing</font></html>
     # [Return] <html><font color=red>Nothing</font></html>  
   def create_texts
-    self.title = $glob.idiom.tictactoe
-    @new_btn.label = $glob.idiom.new_game
-    @quit_btn.label = $glob.idiom.quit
-    @default_size_btn.label = $glob.idiom.default_size
+    self.title = I18n.t(:tictactoe)
+    @new_btn.label = I18n.t(:new_game)
+    @quit_btn.label = I18n.t(:quit)
+    @default_size_btn.label = I18n.t(:default_size)
   end  
     # [Brief] Declare the signals
     # [Receive] <html><font color=red>Nothing</font></html>
@@ -403,10 +403,10 @@ class BoardToolButton < Gtk::ToolButton
   # [Return] <html><font color=red>Nothing</font></html>    
   def check_victory
     if victory?
-      $windows.msg_win.msg.set_text($glob.idiom.player + ($player.act_p.mark_markup == $glob.x_markup ? ' O ' : ' X ') + $glob.idiom.win)
+      $windows.msg_win.msg.set_text(I18n.t(:player) + ($player.act_p.mark_markup == $glob.x_markup ? ' O ' : ' X ') + I18n.t(:win))
       $windows.msg_win.show_all
     elsif $glob.num_moves >= 8
-      $windows.msg_win.msg.set_text($glob.idiom.draw)
+      $windows.msg_win.msg.set_text(I18n.t(:draw))
       $windows.msg_win.show_all
     end
   end    
@@ -603,7 +603,7 @@ class OptionsWindow < Gtk::Window
     }
     @mode_rdo[0].selected = true
     @idiom_rdo = []
-    (0..1).each{|i|
+    (0..2).each{|i|
       @idiom_rdo[i] = Gtk::RadioButton.new(@idiom_rdo[0])
     }
   end
@@ -611,16 +611,17 @@ class OptionsWindow < Gtk::Window
   # [Receive] <html><font color=red>Nothing</font></html>
   # [Return] <html><font color=red>Nothing</font></html>   
   def create_texts
-    self.title = $glob.idiom.options
-    @new_btn.label = $glob.idiom.begin
-    @quit_btn.label = $glob.idiom.quit
-    @idiom_rdo[0].label = $glob.idiom.english
-    @idiom_rdo[1].label = $glob.idiom.portuguese 
-    @mode_rdo[0].label = $glob.idiom.player_player
-    @mode_rdo[1].label = $glob.idiom.player_very_easy
-    @mode_rdo[2].label = $glob.idiom.player_easy
-    @mode_rdo[3].label = $glob.idiom.player_medium
-    @mode_rdo[4].label = $glob.idiom.player_impossible    
+    self.title = I18n.t(:options)
+    @new_btn.label = I18n.t(:begin)
+    @quit_btn.label = I18n.t(:quit)
+    @idiom_rdo[0].label = I18n.t(:english)
+    @idiom_rdo[1].label = I18n.t(:portuguese)
+    @idiom_rdo[2].label = I18n.t(:spanish)
+    @mode_rdo[0].label = I18n.t(:player_player)
+    @mode_rdo[1].label = I18n.t(:player_very_easy)
+    @mode_rdo[2].label = I18n.t(:player_easy)
+    @mode_rdo[3].label = I18n.t(:player_medium)
+    @mode_rdo[4].label = I18n.t(:player_impossible)  
   end  
   # [Brief] Agroup the components, making one englobe the other
   # [Receive] <html><font color=red>Nothing</font></html>
@@ -634,9 +635,13 @@ class OptionsWindow < Gtk::Window
       self.create_texts
     }
     @idiom_rdo[1].signal_connect(:clicked){
-      change_idiom_to(:pt)
+      change_idiom_to(:pt_br)
       self.create_texts
-    }  
+    }
+    @idiom_rdo[2].signal_connect(:clicked){
+      change_idiom_to(:es)
+      self.create_texts
+    }
   end  
   # [Brief] Execute the commands that transfer the Options Window to the Board Window
   # [Receive] <html><font color=red>Nothing</font></html>
@@ -664,7 +669,7 @@ class OptionsWindow < Gtk::Window
   # [Receive] <b>+String+:</b> A Idiom
   # [Return] <html><font color=red>Nothing</font></html> 
   def change_idiom_to(idiom)
-    $glob.idiom.idiom = idiom
+    I18n.locale = idiom
     self.create_texts
     $windows.board_win.create_texts
   end  
@@ -675,8 +680,8 @@ class OptionsWindow < Gtk::Window
     (0..4).each{|i|
       @mode_vbox.pack_start(@mode_rdo[i])
     }
-    (0..1).each{|i|
-      @idiom_vbox.pack_start(@idiom_rdo[i])
+    (@idiom_rdo[0].group).reverse_each{|rdo_btn|
+      @idiom_vbox.pack_start(rdo_btn)
     }
     @hbox.pack_start(@mode_vbox)
     @hbox.pack_start(@idiom_vbox)
@@ -686,127 +691,9 @@ class OptionsWindow < Gtk::Window
     self.add(@geral_vbox)
   end  
 end  
-# Controls the game's idiom.
-class Idiom < Gtk::Button
-  # <b>+String+:</b> The actual idiom of the game.
-  attr_writer :idiom
-  # [Brief] Initial method, that initialize's the idiom and create a hash variable for every phrase of the game
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <html><font color=red>Nothing</font></html>    
-  def initialize
-    @idiom = :en
-    @new_game = {:en=>'New Game',:pt =>'Novo Jogo'}
-    @begin = {:en=>'Begin',:pt =>'Começar'}
-    @quit = {:en=>'Quit',:pt =>'Sair'}
-    @default_size = {:en=>'Default Size',:pt =>'Tamanho Padrão'}
-    @player_player = {:en=>'Player vs Player',:pt =>'Jogador vs Jogador'}
-    @player_very_easy = {:en=>'Player vs CPU Very Easy',:pt =>'Jogador vs CPU Muito Fácil'}
-    @player_easy = {:en=>'Player vs CPU Easy',:pt =>'Jogador vs CPU Fácil'}
-    @player_medium = {:en=>'Player vs CPU Medium',:pt =>'Jogador vs CPU Médio'}
-    @player_impossible = {:en=>'Player vs CPU Impossible',:pt =>'Jogador vs CPU Impossível'}
-    @draw = {:en=>'Draw',:pt =>'Empate'}
-    @win = {:en=>'Win',:pt =>'Venceu'}
-    @lose = {:en=>'Lose',:pt =>'Perdeu'}
-    @tictactoe = {:en=>'Tic Tac Toe',:pt =>'Jogo da Velha'}
-    @options = {:en=>'Options',:pt =>'Opções'}
-    @notification = {:en=>'Notification',:pt =>'Aviso'}
-    @player = {:en=>'Player',:pt =>'Jogador'}
-    @english = {:en=>'English',:pt =>'Inglês'}
-    @portuguese = {:en=>'Portuguese',:pt =>'Português'}
-  end
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-  def new_game
-    return @new_game[@idiom]
-  end
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-  def begin
-    return @begin[@idiom]
-  end  
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-  def quit
-    return @quit[@idiom]
-  end
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-  def default_size
-    return @default_size[@idiom]
-  end   
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-  def player_player
-    return @player_player[@idiom]
-  end  
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-  def player_very_easy
-    return @player_very_easy[@idiom]
-  end  
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-  def player_easy
-    return @player_easy[@idiom]
-  end  
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-  def player_medium
-    return @player_medium[@idiom]
-  end  
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-  def player_impossible
-    return @player_impossible[@idiom]
-  end  
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-  def draw
-    return @draw[@idiom]
-  end  
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-  def win
-    return @win[@idiom]
-  end 
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-  def lose
-    return @lose[@idiom]
-  end 
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-  def tictactoe
-    return @tictactoe[@idiom]
-  end 
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-  def options
-    return @options[@idiom]
-  end   
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-  def player
-    return @player[@idiom]
-  end  
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-  def english
-    return @english[@idiom]
-  end  
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-  def portuguese
-    return @portuguese[@idiom]
-  end  
-  # [Receive] <html><font color=red>Nothing</font></html>
-  # [Return] <b>+String+:</b> the phrase in the actual idiom.  
-end 
 
 # Manages the global variables
 class Global
-  # <b>+Object+:</b> Instance of class Idiom.
-  attr_reader :idiom
   # <b>+String+:</b> Represents the null markup.
   attr_reader :null_markup
   # <b>+String+:</b> Represents the X markup.
@@ -823,7 +710,6 @@ class Global
   # [Receive] <html><font color=red>Nothing</font></html>
   # [Return] <html><font color=red>Nothing</font></html>  
   def initialize
-    @idiom = Idiom.new
     @null_markup = "<span face='Lucida Console' size='50'> </span>"
     @x_markup = "<span face='Lucida Console' size='50'>X</span>"
     @o_markup = "<span face='Lucida Console' size='50'>O</span>"  
@@ -875,6 +761,8 @@ class Players < Array
   end  
 end  
 begin 
+  I18n.load_path = Dir['./locale/pt_en_es.yml']
+  I18n.default_locale = :en
   $glob = Global.new
   (0..8).each{|i|
     $glob.btns[i] = BoardToolButton.new($glob.null_markup,i - Integer(i/3)*3,Integer(i/3))
@@ -889,11 +777,10 @@ end
 ##################################################################
 ###  NEWS  #######################################################
 ##################################################################
-## => Creation of two classes
-##   - Global -> Manages the global variables
-##   - Windows -> Manages the windows
-## => Utilization of symbols to send the type of signal.
-## => Change the name of the variable nivel to game_mode
+## => Destruction of class Idiom
+## => Utilization of I18n
+## => New idiom, the spanish
+## => Utilization of a new file(/locale/pt_en_es.yml)
 ##
 ##################################################################
 ##################################################################

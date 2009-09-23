@@ -1,0 +1,65 @@
+#
+# [Author] HugoLnx/HugoLinux
+# [Credits] <b>To Help-me in this version:</b> RubyonBr Forum ( http://forum.rubyonbr.org/forums/ )
+# [Version_of_File] 1.0.0.0
+# [Version_of_TicTacToe] 1.3.0.0
+#
+pt_br:
+  new_game: Novo Jogo
+  begin: Começar
+  quit: Sair
+  default_size: Tamanho Padrão
+  player_player: Jogador vs Jogador
+  player_very_easy: Jogador vs CPU Muito Fácil
+  player_easy: Jogador vs CPU Fácil
+  player_medium: Jogador vs CPU Médio
+  player_impossible: Jogador vs CPU Impossível
+  draw: Empate
+  win: Venceu
+  lose: Perdeu
+  tictactoe: Jogo da Velha
+  options: Opções
+  player: Jogador
+  english: Inglês
+  portuguese: Português
+  spanish: Espanhol
+  
+en:
+  new_game: New Game
+  begin: Begin
+  quit: Quit
+  default_size: Default Size
+  player_player: Player vs Player
+  player_very_easy: Player vs CPU Very Easy
+  player_easy: Player vs CPU Easy
+  player_medium: Player vs CPU Medium
+  player_impossible: Player vs CPU Impossible
+  draw: Draw
+  win: Win
+  lose: Lose
+  tictactoe: Tic Tac Toe
+  options: Options
+  player: Player
+  english: English
+  portuguese: Portuguese
+  spanish: Spanish
+  
+es:
+  new_game: Nuevo juego
+  begin: Iniciar
+  quit: Salir
+  default_size: Tamaño estándar
+  player_player: Jugador vs Jugador
+  player_very_easy: Jugador vs CPU Muy fácil
+  player_easy: Jugador vs CPU fácil
+  player_medium: Jugador vs CPU Medio
+  player_impossible: Jugador vs CPU Imposible
+  draw: Dibujar
+  win: Ganó
+  lose: Perdido
+  tictactoe: Tic Tac Toe
+  options: Opciones
+  player: Jugador
+  english: Inglés
+  portuguese: Portugués
+  spanish: Español
