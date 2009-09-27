@@ -169,7 +169,6 @@ class CPU < Player
         end  
       end  
     end
-    puts "RETURN VALID"
     return valid
   end  
   
